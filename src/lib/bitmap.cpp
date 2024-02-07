@@ -7,35 +7,37 @@ Bitmap::Bitmap(/* args */)
 {
 }
 
-Bitmap::Bitmap(char *bits, uint32_t length, uint32_t offset)
+Bitmap::Bitmap(char *buffer, uint32_t length, uint32_t offset)
 {
-    make(bits, length, offset);
+    make(buffer, length, offset);
 }
 
 Bitmap::~Bitmap()
 {
 }
 
-void Bitmap::init(char *bits, uint32_t length, uint32_t offset)
+void Bitmap::init(char *buffer, uint32_t length, uint32_t offset)
 {
-    memset(bits, 0, length);
-    make(bits, length, offset);
+    memset(buffer, 0, length);
+    make(buffer, length, offset);
 }
 
-void Bitmap::make(char *bits, uint32_t length, uint32_t offset)
+void Bitmap::make(char *buffer, uint32_t length, uint32_t offset)
 {
-    this->bits = (uint8_t *)bits;
+    this->buffer = (uint8_t *)buffer;
     this->length = length;
     this->offset = offset;
 }
 
+
 /**
- * @brief // 测试位图的某一位是否为1
+ * @brief 测试位图中某一段的值是否为1
  * @param index 物理位置
+ * @param count 测试长度
  * @return - true 该位为1
  * @return - false 该为不为1
  */
-bool Bitmap::test(uint32_t index)
+bool Bitmap::test(uint32_t index, uint32_t count)
 {
     assert(index >= this->offset);
     idx_t idx = index - this->offset; // 得到位图的索引
@@ -45,42 +47,36 @@ bool Bitmap::test(uint32_t index)
 
     assert(bytes < this->length);
 
-    return (this->bits[bytes] & (1 << bits));
+    for (size_t i = 0; i < count; i++)
+    {
+        if (!(this->buffer[bytes] & (1 << bits)))
+        {
+            return false;
+        }
+        bits++;
+        if (bits == 8)
+        {
+            bits = 0;
+            bytes++;
+            assert(bytes < this->length);
+        }
+    }
+    return true;
 }
 
-/**
- * @brief 设置位图的某位的值
- */
-void Bitmap::set(uint32_t index, bool value)
-{
-    assert(index >= this->offset);
-
-    idx_t idx = index - this->offset; // 得到位图的索引
-
-    uint32_t bytes = idx / 8; // 位图数组中的哪个字节
-    uint8_t bits = idx % 8;   // 该字节中的哪一位
-    if (value)
-    {
-        // 置为 1
-        this->bits[bytes] |= (1 << bits);
-    }
-    else
-    {
-        // 置为 0
-        this->bits[bytes] &= ~(1 << bits);
-    }
-}
 
 /**
- * @brief 设置位图的从 index_start 位开始长度位 length 位的值
+ * @brief 设置位图的从 index_start 位开始长度为 count 位的值
+ * @param index_start 开始索引
+ * @param value 要设置的值
+ * @param count 要设置的长度，默认为1
  */
-void Bitmap::set(uint32_t index_start, uint32_t length, bool value)
+void Bitmap::set(uint32_t index_start, bool value, uint32_t count)
 {
-    assert(length > 0);
-    uint32_t index_end = index_start + length;
+    assert(count > 0);
     assert(index_start >= this->offset);
-    assert(index_end >= this->offset);
-
+    uint32_t index_end = index_start + count;
+    
     idx_t idx = index_start - this->offset; // 得到位图的索引
     uint32_t bytes = idx / 8;               // 位图数组中的哪个字节
     uint8_t bits = idx % 8;                 // 该字节中的哪一位
@@ -93,12 +89,12 @@ void Bitmap::set(uint32_t index_start, uint32_t length, bool value)
         if (value)
         {
             // 置为 1
-            this->bits[bytes] |= (1 << bits);
+            this->buffer[bytes] |= (1 << bits);
         }
         else
         {
             // 置为 0
-            this->bits[bytes] &= ~(1 << bits);
+            this->buffer[bytes] &= ~(1 << bits);
         }
         bits++;
         if (bits == 8)
@@ -152,15 +148,8 @@ int Bitmap::scan(uint32_t count)
         return EOF;
 
     // 否则将找到的位，全部置为 1
-    set(offset + start, count, true);
-    // bits_left = count;
-    // next_bit = start;
-    // while (bits_left--)
-    // {
-    //     set(offset + next_bit, true);
-    //     next_bit++;
-    // }
-    // 然后返回索引
+    set(offset + start, true, count);
+
     return start + offset;
 }
 
