@@ -49,6 +49,7 @@ bool Bitmap::test(uint32_t index, uint32_t count)
 
     for (size_t i = 0; i < count; i++)
     {
+        assert(bytes < this->length);
         if (!(this->buffer[bytes] & (1 << bits)))
         {
             return false;
@@ -58,7 +59,6 @@ bool Bitmap::test(uint32_t index, uint32_t count)
         {
             bits = 0;
             bytes++;
-            assert(bytes < this->length);
         }
     }
     return true;

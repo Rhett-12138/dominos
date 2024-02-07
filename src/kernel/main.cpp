@@ -29,7 +29,8 @@ extern "C" void kernel_init()
     // 系统时间
     Time::time_init();
 
-    Bitmap bmap;
+    
+    memory::memory_test();
     
     // asm volatile("sti");
     int counter = 0;

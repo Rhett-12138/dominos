@@ -12,6 +12,8 @@ uint32_t memory::start_page=0;     // 可分配物理内存起始位置
 uint8_t* memory::memory_map;     // 物理内存数组
 uint32_t memory::memory_map_pages;   // 物理内存数组
 
+Bitmap memory::kernel_map;
+
 void memory::memory_init(uint32_t magic, uint32_t addr)
 {
     uint32_t count=0;
@@ -170,6 +172,7 @@ void memory::flush_tlb(uint32_t vaddr)
 
 void memory::memory_test()
 {
+    /*
     // 将 20M 0x1400000 内存映射到 64M 0x4000000 的位置
     // 还需要一个页表 0x900000
 
@@ -196,6 +199,44 @@ void memory::memory_test()
 
     BMB;
     ptr[2] = 'b';
+    */
+    uint32_t *pages = (uint32_t*)(0x200000);
+    uint32_t count = 0x6fe;
+    for(size_t i=0; i<count; i++)
+    {
+        pages[i] = alloc_kpage(1);
+        LOG("0x%x", i);
+    }
+    for(size_t i=0; i<count; i++)
+    {
+        free_kpage(pages[i], 1);
+    }
+}
+
+uint32_t memory::alloc_kpage(uint32_t count)
+{
+    assert(count>0);
+    uint32_t index = kernel_map.scan(count);
+    if(index==EOF)
+    {
+        panic("Scan page fail!!!");
+    }
+
+    uint32_t addr = PAGE(index);
+    LOG("ALLOC kernel page 0x%p count %d", addr, count);
+    return addr;
+}
+
+void memory::free_kpage(uint32_t addr, uint32_t count)
+{
+    ASSERT_PAGE(addr);
+    assert(count>0);
+    uint32_t index = addr >> 12;
+    
+    assert(kernel_map.test(index, count));
+    kernel_map.set(index, 0, count);
+    LOG("FREE kernel pages 0x%p count %d", addr, count);
+
 }
 
 void memory::free_page(uint32_t addr)
