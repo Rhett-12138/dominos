@@ -1,5 +1,18 @@
 # vscode
-.vscode/
+/.vscode/
 
-/build/*
+*.img
+*.ini
+*.bin
+*.map
+*.o
+*.out
+*.zst
+*.gz
+*.lock
+*.vmdk
+*.log
+*.pyc
+
+build
 
