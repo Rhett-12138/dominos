@@ -111,38 +111,39 @@ static void clock_int(int vector);
 class InterruptManager
 {
 private:
-    gate_t idt[IDT_SIZE];
-    pointer_t idt_ptr;
+    InterruptManager();
+
+    static void idt_init(); // 初始化中断描述符，和中断处理函数数组
+    static void  pic_init(); // 初始化中断控制器
 
 public:
-    InterruptManager();
-    ~InterruptManager();
-
-    void idt_init(); // 初始化中断描述符，和中断处理函数数组
-    void pic_init(); // 初始化中断控制器
-    void interrupt_init();
+    static void interrupt_init();
 
     static void HandleInterrupt();
-    static void default_handler(int vector);
+    static void default_handler(int vector); // 默认中断处理函数
     static void exception_handler(
         int vector,
         uint32_t edi, uint32_t esi, uint32_t ebp, uint32_t esp,
         uint32_t ebx, uint32_t edx, uint32_t ecx, uint32_t eax,
         uint32_t gs, uint32_t fs, uint32_t es, uint32_t ds,
-        uint32_t vector0, uint32_t error, uint32_t eip, uint32_t cs, uint32_t eflags);
-    static void send_eoi(int vector);       // 通知中断控制器，中断处理结束
-    static void set_interrupt_handler(int intNum, handler_t handler);  // 注册中断处理函数
-    static void set_interrupt_mask(int intNum, bool enable);    // 设置中断屏蔽字
+        uint32_t vector0, uint32_t error, uint32_t eip, uint32_t cs, uint32_t eflags); // 默认异常处理
+    static void send_eoi(int vector);                                 // 通知中断控制器，中断处理结束
+    static void set_interrupt_handler(int intNum, handler_t handler); // 注册中断处理函数
+    static void set_interrupt_mask(int intNum, bool enable);          // 设置中断屏蔽字
+
+    static bool disable_interrupt();             // 清除 IF 位， 返回之前的值
+    static bool get_interrupt_state();           // 获得 IF 位
+    static void set_interrupt_state(bool state); // 设置 IF 位
 };
 
 class InterruptHandler
 {
 private:
     int intNumber;
+
 public:
     InterruptHandler(int num);
     void enable();  // 开启中断
     void disable(); // 屏蔽中断
     // virtual void handler(int vector);
-
 };

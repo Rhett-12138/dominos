@@ -7,38 +7,26 @@
 handler_t handler_table[IDT_SIZE];
 extern handler_t handler_entry_table[ENTRY_SIZE];
 
-InterruptManager::InterruptManager()
-{
-}
+static pointer_t idt_ptr;
+static gate_t idt[IDT_SIZE];
 
-InterruptManager::~InterruptManager()
-{
-}
+extern "C" void inter_handler();
 
 // 初始化中断描述符，和中断处理函数数组
 void InterruptManager::idt_init()
 {
-    for (size_t i = 0; i < IDT_SIZE; i++)
+    for (size_t i = 0; i < ENTRY_SIZE; i++)
     {
         gate_t *gate = &idt[i];
-
-        gate->offset0 = (uint32_t)HandleInterrupt & 0xffff;
-        gate->offset1 = ((uint32_t)HandleInterrupt >> 16) & 0xffff;
+        handler_t handler = handler_entry_table[i];
+        gate->offset0 = (uint32_t)handler & 0xffff;
+        gate->offset1 = ((uint32_t)handler >> 16) & 0xffff;
         gate->selector = 1 << 3; // 代码段
         gate->reserved = 0;      // 保留不用
         gate->type = 0b1110;     // 中断门
         gate->segment = 0;       // 系统段
         gate->DPL = 0;           // 内核态
         gate->present = 1;       // 有效
-    }
-
-    for (size_t i = 0; i < ENTRY_SIZE; i++)
-    {
-        gate_t *gate = &idt[i];
-        handler_t handler = handler_entry_table[i];
-
-        gate->offset0 = (uint32_t)handler & 0xffff;
-        gate->offset1 = ((uint32_t)handler >> 16) & 0xffff;
     }
 
     for (size_t i = 0; i < 0x20; i++)
@@ -51,9 +39,12 @@ void InterruptManager::idt_init()
         handler_table[i] = (handler_t)&InterruptManager::default_handler;
     }
 
+
     idt_ptr.base = (uint32_t)idt;
     idt_ptr.limit = sizeof(idt) - 1;
+    BMB;
     asm volatile("lidt %0" : : "m"(idt_ptr));
+    BMB;
 }
 
 // 初始化中断控制器
@@ -69,7 +60,7 @@ void InterruptManager::pic_init()
     outb(PIC_S_DATA, 2);          // ICW3: 设置从片连接到主片的 IR2 引脚
     outb(PIC_S_DATA, 0b00000001); // ICW4: 8086模式, 正常EOI
 
-    outb(PIC_M_DATA, 0b11111110); // 关闭所有中断
+    outb(PIC_M_DATA, 0b11111111); // 关闭所有中断
     outb(PIC_S_DATA, 0b11111111); // 关闭所有中断
 }
 
@@ -79,8 +70,11 @@ void InterruptManager::interrupt_init()
     idt_init();
 }
 
+
+
 void InterruptManager::default_handler(int vector)
 {
+    BMB;
     send_eoi(vector);
     DEBUG("[0x%X] default interrupt called...\n", vector);
     // set_interrupt_mask(vector-0x20, false);
@@ -139,7 +133,7 @@ void InterruptManager::send_eoi(int vector)
 // 注册中断处理函数
 void InterruptManager::set_interrupt_handler(int intNum, handler_t handler)
 {
-    assert(intNum >= 0 && intNum < 16);
+    assert(intNum >= 0 && intNum <= 17);
     handler_table[intNum + IRQ_MASTER_NR] = handler;
 }
 
@@ -164,6 +158,35 @@ void InterruptManager::set_interrupt_mask(int intNum, bool enable)
     {
         outb(port, inb(port) | (1 << intNum));
     }
+}
+
+bool InterruptManager::disable_interrupt()
+{
+    asm volatile(
+        "pushfl\n"        // 将当前 eflags 压入栈中
+        "cli\n"           // 清除 IF 位，此时外中断已被屏蔽
+        "popl %eax\n"     // 将刚才压入的 eflags 弹出到 eax
+        "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
+        "andl $1, %eax\n" // 只需要 IF 位
+    );
+}
+
+bool InterruptManager::get_interrupt_state()
+{
+    asm volatile(
+        "pushfl\n"        // 将当前 eflags 压入栈中
+        "popl %eax\n"     // 将压入的 eflags 弹出到 eax
+        "shrl $9, %eax\n" // 将 eax 右移 9 位，得到 IF 位
+        "andl $1, %eax\n" // 只需要 IF 位
+    );
+}
+
+void InterruptManager::set_interrupt_state(bool state)
+{
+    if (state)
+        asm volatile("sti\n");
+    else
+        asm volatile("cli\n");
 }
 
 InterruptHandler::InterruptHandler(int num)
