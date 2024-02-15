@@ -1,6 +1,6 @@
 #pragma once
 
-#include <onix/types.h>
+#include <types.h>
 
 #define GDT_SIZE 128
 
