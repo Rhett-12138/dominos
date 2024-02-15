@@ -36,17 +36,17 @@ $(BUILD)/%.o: $(SRC)/%.cpp
 $(BUILD)/kernel.bin: $(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/main.o \
 	$(BUILD)/kernel/io.o \
-	$(BUILD)/kernel/string.o \
 	$(BUILD)/kernel/console.o \
-	$(BUILD)/kernel/stdio.o \
-	$(BUILD)/kernel/stdlib.o \
-	$(BUILD)/kernel/assert.o \
 	$(BUILD)/kernel/gdt.o \
 	$(BUILD)/kernel/interrupts.o \
 	$(BUILD)/kernel/inthandlers.o \
 	$(BUILD)/kernel/time.o \
 	$(BUILD)/kernel/memory.o \
 	$(BUILD)/devices/clock.o \
+	$(BUILD)/lib/stdio.o \
+	$(BUILD)/lib/stdlib.o \
+	$(BUILD)/lib/assert.o \
+	$(BUILD)/lib/string.o \
 	$(BUILD)/lib/charBuf.o \
 	$(BUILD)/lib/bitmap.o
 	$(shell mkdir -p $(dir $@))
