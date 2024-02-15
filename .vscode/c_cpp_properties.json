@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/include/lib",
-                "${workspaceFolder}/include/onix",
+                "${workspaceFolder}/include/kernel",
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/include/devices"
             ],

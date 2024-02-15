@@ -1,5 +1,7 @@
 #include <clock.h>
 
+#include <task_queue.h>
+
 uint32_t volatile Clock::jiffies;
 uint32_t Clock::jiffy;
 uint32_t volatile Clock::beeping;
@@ -24,15 +26,21 @@ void Clock::handler(int vector)
     // LOG("vector: 0x%x", vector);
     assert(vector == 0x20);
     InterruptManager::send_eoi(vector);
-    if(jiffies%200==0)
-    {
-        start_beep();
-    }
+    // stop_beep();
+
     jiffies++;
+    // LOG("clock jiffies %d ...", jiffies);
+    
+    Task* task = TaskQueue::running_task();
+    assert(task->magic==ONIX_MAGIC);
 
-    LOG("clock jiffies %d ...", jiffies);
-    stop_beep();
-
+    task->jiffies = jiffies;
+    task->ticks--;
+    if(!task->ticks)
+    {   // 时间片完
+        task->ticks = task->priority;
+        TaskQueue::schedule();
+    }
 }
 
 void Clock::start_beep()

@@ -64,14 +64,14 @@ void InterruptManager::pic_init()
     outb(PIC_S_DATA, 0b11111111); // 关闭所有中断
 }
 
+// 中断处理初始化
 void InterruptManager::interrupt_init()
 {
     pic_init();
     idt_init();
 }
 
-
-
+// 默认中断处理函数
 void InterruptManager::default_handler(int vector)
 {
     BMB;
@@ -80,6 +80,7 @@ void InterruptManager::default_handler(int vector)
     // set_interrupt_mask(vector-0x20, false);
 }
 
+// 默认异常处理函数
 void InterruptManager::exception_handler(
     int vector,
     uint32_t edi, uint32_t esi, uint32_t ebp, uint32_t esp,
@@ -130,7 +131,11 @@ void InterruptManager::send_eoi(int vector)
     }
 }
 
-// 注册中断处理函数
+/**
+ * @brief 注册中断处理函数
+ * @param intNum 中断号码
+ * @param handler 中断函数指针 
+ */ 
 void InterruptManager::set_interrupt_handler(int intNum, handler_t handler)
 {
     assert(intNum >= 0 && intNum <= 17);
@@ -171,6 +176,11 @@ bool InterruptManager::disable_interrupt()
     );
 }
 
+/**
+ * @brief 获取当前中断状态
+ * @return - true 允许中断
+ * @return - false 不允许中断 
+*/
 bool InterruptManager::get_interrupt_state()
 {
     asm volatile(
@@ -181,6 +191,9 @@ bool InterruptManager::get_interrupt_state()
     );
 }
 
+/**
+ * @brief 打开中断或关闭中断
+*/
 void InterruptManager::set_interrupt_state(bool state)
 {
     if (state)

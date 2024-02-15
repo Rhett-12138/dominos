@@ -213,6 +213,9 @@ void memory::memory_test()
     }
 }
 
+/**
+ * @brief 从位图中扫描并分配 count 个连续的页
+*/
 uint32_t memory::alloc_kpage(uint32_t count)
 {
     assert(count>0);

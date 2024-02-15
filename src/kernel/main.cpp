@@ -8,7 +8,7 @@
 #include <clock.h>
 #include <time.h>
 #include <memory.h>
-#include <bitmap.h>
+#include <task_queue.h>
 
 char message[] = "hello world!"; // .data
 
@@ -28,10 +28,12 @@ extern "C" void kernel_init()
     // 系统时间
     Time::time_init();
 
+    task_init();
     
     // memory::memory_test();
     
-    asm volatile("sti");
+    InterruptManager::set_interrupt_state(true); // 打开中断
+    // asm volatile("sti");
     // int counter = 0;
     while (true)
     {

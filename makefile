@@ -15,7 +15,7 @@ CPPFLAGS+= -Wno-write-strings
 
 # INCLUDE
 INCLUDE:= -Iinclude
-INCLUDE+= -Iinclude/onix
+INCLUDE+= -Iinclude/kernel
 INCLUDE+= -Iinclude/lib
 INCLUDE+= -Iinclude/devices
 
@@ -42,6 +42,9 @@ $(BUILD)/kernel.bin: $(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/inthandlers.o \
 	$(BUILD)/kernel/time.o \
 	$(BUILD)/kernel/memory.o \
+	$(BUILD)/kernel/task.o \
+	$(BUILD)/kernel/task_queue.o \
+	$(BUILD)/kernel/schedule.o \
 	$(BUILD)/devices/clock.o \
 	$(BUILD)/lib/stdio.o \
 	$(BUILD)/lib/stdlib.o \
