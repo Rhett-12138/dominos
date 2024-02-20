@@ -11,6 +11,7 @@ static pointer_t idt_ptr;
 static gate_t idt[IDT_SIZE];
 
 extern "C" void inter_handler();
+extern "C" void syscall_handler();
 
 // 初始化中断描述符，和中断处理函数数组
 void InterruptManager::idt_init()
@@ -39,12 +40,22 @@ void InterruptManager::idt_init()
         handler_table[i] = (handler_t)&InterruptManager::default_handler;
     }
 
+    // 初始化系统调用
+    gate_t *gate = &idt[0x80];
+    gate->offset0 = (uint32_t)syscall_handler & 0xffff;
+    gate->offset1 = ((uint32_t)syscall_handler >> 16) & 0xffff;
+    gate->selector = 1 << 3; // 代码段
+    gate->reserved = 0;      // 保留不用
+    gate->type = 0b1110;     // 中断门
+    gate->segment = 0;       // 系统段
+    gate->DPL = 3;           // 用户态
+    gate->present = 1;       // 有效
 
     idt_ptr.base = (uint32_t)idt;
     idt_ptr.limit = sizeof(idt) - 1;
-    BMB;
+
     asm volatile("lidt %0" : : "m"(idt_ptr));
-    BMB;
+
 }
 
 // 初始化中断控制器
@@ -205,6 +216,7 @@ void InterruptManager::set_interrupt_state(bool state)
 InterruptHandler::InterruptHandler(int num)
 {
     intNumber = num;
+    // TODO 优化代码，将下面的功能在基类实现，简化派生类的代码
     // InterruptManager::set_interrupt_handler(num, (handler_t)&InterruptHandler::handler);
     // enable();
 }

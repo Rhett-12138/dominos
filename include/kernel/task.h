@@ -2,8 +2,7 @@
 
 #include <types.h>
 #include <bitmap.h>
-
-#define PAGE_SIZE 0x1000
+#include <memory.h>
 
 #define KERNEL_USER 0
 #define NORMAL_USER 1
