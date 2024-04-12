@@ -9,6 +9,7 @@
 #include <time.h>
 #include <memory.h>
 #include <task_queue.h>
+#include <gate.h>
 
 char message[] = "hello world!"; // .data
 
@@ -30,16 +31,10 @@ extern "C" void kernel_init()
 
     task_init();
     
+    syscall_init();
     // memory::memory_test();
     
     InterruptManager::set_interrupt_state(true); // 打开中断
     // asm volatile("sti");
     // int counter = 0;
-    while (true)
-    {
-        // LOG("loop in kernel init%d\n", counter++);
-        // delay(100000000);
-    }
-
-    return;
 }

@@ -18,6 +18,7 @@ public:
     static void schedule();                       // 任务切换
     static void task_switch(Task *next);
     static Task *task_create(target_t target, const char *name, uint32_t priority, uint32_t uid); // 创建任务
+    static void task_yield();                                                                     // 进程主动切换
 };
 
 // 测试

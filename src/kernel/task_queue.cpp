@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <interrupts.h>
+#include <syscall.h>
 
 Task* TaskQueue::task_table[MAX_TASKS];
 
@@ -76,6 +77,8 @@ Task *TaskQueue::running_task()
 
 void TaskQueue::schedule()
 {
+    assert(!InterruptManager::get_interrupt_state()); // 不可中断
+
     Task *current = running_task();
     Task *next = task_search(task_state_t::TASK_READY);
     if(next==nullptr)
@@ -90,6 +93,7 @@ void TaskQueue::schedule()
     }
 
     next->state = task_state_t::TASK_RUNNING;
+    
     if(next==current)
     {
         return;
@@ -108,12 +112,19 @@ Task *TaskQueue::task_create(target_t target, const char *name, uint32_t priorit
     task->create(target, name, priority, uid);
 }
 
+void TaskQueue::task_yield()
+{
+    schedule();
+}
+
 uint32_t thread_a()
 {
     InterruptManager::set_interrupt_state(true);
     while(true)
     {
         printf("task running...thread a.\n");
+        // TaskQueue::task_yield();
+        yield();
     }
 }
 uint32_t thread_b()
@@ -122,6 +133,8 @@ uint32_t thread_b()
     while(true)
     {
         printf("task running...thread b.\n");
+        // TaskQueue::task_yield();
+        yield();
     }
 }
 uint32_t thread_c()
@@ -130,6 +143,8 @@ uint32_t thread_c()
     while(true)
     {
         printf("task running...thread c.\n");
+        // TaskQueue::task_yield();
+        yield();
     }
 }
 

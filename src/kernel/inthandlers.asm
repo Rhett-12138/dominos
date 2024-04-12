@@ -182,13 +182,11 @@ extern syscall_table
 global syscall_handler
 syscall_handler:
     ; 验证系统调用号
-    ; push eax
-    xchg bx, bx
+    push eax
     push eax
     call _Z13syscall_checkj
     add esp, 4
-    xchg bx, bx
-    ; pop eax
+    pop eax ; 嵌套一层push pop eax， 放置eax的值在调用syscall_check之后消失
 
     push 0x20222202
 
@@ -216,7 +214,7 @@ syscall_handler:
     call [syscall_table + eax * 4]
 
     ; xchg bx, bx
-    add esp, (3 * 4); 系统调用结束恢复栈
+    add esp, (3 * 4); 系统调用结束恢复栈 参数数量 n*4
 
     ; 修改栈中 eax 寄存器，设置系统调用返回值
     mov dword [esp + 8 * 4], eax
