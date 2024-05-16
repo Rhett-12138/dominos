@@ -10,6 +10,7 @@
 #include <memory.h>
 #include <task_queue.h>
 #include <gate.h>
+#include <list.h>
 
 char message[] = "hello world!"; // .data
 
@@ -34,7 +35,7 @@ extern "C" void kernel_init()
     syscall_init();
     // memory::memory_test();
     
-    InterruptManager::set_interrupt_state(true); // 打开中断
-    // asm volatile("sti");
-    // int counter = 0;
+    // InterruptManager::set_interrupt_state(true); // 打开中断
+    list_test();
+
 }

@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <charBuf.h>
+#include <assert.h>
 
 #define ZEROPAD 1  // 填充0
 #define SIGN 2     // usigned/signed long
