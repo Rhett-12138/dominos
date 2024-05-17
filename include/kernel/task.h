@@ -3,6 +3,7 @@
 #include <types.h>
 #include <bitmap.h>
 #include <memory.h>
+#include <list.h>
 
 #define KERNEL_USER 0
 #define NORMAL_USER 1
@@ -35,20 +36,23 @@ struct task_frame_t
 class Task
 {
 private:
-    uint32_t *stack;              // 栈顶的位置
+    uint32_t *stack; // 栈顶的位置
 public:
-    task_state_t state;           // 任务状态
-    uint32_t priority;            // 任务优先级
-    uint32_t ticks;               // 剩余时间片
-    uint32_t jiffies;             // 上次执行时全局时间片
+    list_node_t node;
+    task_state_t state;       // 任务状态
+    uint32_t priority;        // 任务优先级
+    uint32_t ticks;           // 剩余时间片
+    uint32_t jiffies;         // 上次执行时全局时间片
     char name[TASK_NAME_LEN]; // 任务名称
-    uint32_t uid;                 // 用户id
-    uint32_t pde;                 // 页目录物理地址
-    Bitmap *vmap;                 // 进程虚拟内存位图
-    uint32_t magic;               // 内核魔数，用于检测栈溢出
+    uint32_t uid;             // 用户id
+    uint32_t pde;             // 页目录物理地址
+    Bitmap *vmap;             // 进程虚拟内存位图
+    uint32_t magic;           // 内核魔数，用于检测栈溢出
     task_frame_t frame;
 
 public:
     Task();
     void create(target_t target, const char *name, uint32_t priority, uint32_t uid);
+    void block(task_state_t new_state);
+    void unblock();
 };

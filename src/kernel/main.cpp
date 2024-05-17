@@ -16,9 +16,6 @@ char message[] = "hello world!"; // .data
 
 extern "C" void kernel_init()
 {
-    // console_init();
-    // gdt_init();
-
     memory::memory_map_init();
     memory::mapping_init();
 
@@ -30,12 +27,11 @@ extern "C" void kernel_init()
     // 系统时间
     Time::time_init();
 
-    task_init();
     
     syscall_init();
-    // memory::memory_test();
-    
-    // InterruptManager::set_interrupt_state(true); // 打开中断
-    list_test();
+    task_init();
+
+    // list_test();
+    InterruptManager::set_interrupt_state(true); // 打开中断
 
 }

@@ -4,15 +4,23 @@
 #include <assert.h>
 #include <interrupts.h>
 #include <syscall.h>
+#include <clock.h>
+
 
 Task* TaskQueue::task_table[MAX_TASKS];
+List TaskQueue::block_list = List();
+List TaskQueue::sleep_list = List();
+Task* idle_task;
 
 /**
  * @brief 初始化任务队列
  */
 void TaskQueue::init_queue()
 {
-    Task* task = running_task();
+    block_list.init();
+    sleep_list.init();
+
+    Task *task = running_task();
     task->magic = ONIX_MAGIC;
     task->ticks = 1;
     for (size_t i = 0; i < MAX_TASKS; i++)
@@ -64,6 +72,10 @@ Task *TaskQueue::task_search(task_state_t state)
             task = ptr;
         }
     }
+    if (task == nullptr && state == TASK_READY)
+    {
+        task = idle_task;
+    }
     return task;
 }
 
@@ -71,8 +83,7 @@ Task *TaskQueue::running_task()
 {
     asm volatile(
         "movl %esp, %eax\n"
-        "andl $0xfffff000, %eax\n"
-    );
+        "andl $0xfffff000, %eax\n");
 }
 
 void TaskQueue::schedule()
@@ -81,20 +92,20 @@ void TaskQueue::schedule()
 
     Task *current = running_task();
     Task *next = task_search(task_state_t::TASK_READY);
-    if(next==nullptr)
+    if (next == nullptr)
     {
         return;
     }
     assert(next->magic == ONIX_MAGIC); // 检测栈溢出
 
-    if(current->state == task_state_t::TASK_RUNNING)
+    if (current->state == task_state_t::TASK_RUNNING)
     {
         current->state = task_state_t::TASK_READY;
     }
 
     next->state = task_state_t::TASK_RUNNING;
-    
-    if(next==current)
+
+    if (next == current)
     {
         return;
     }
@@ -103,8 +114,8 @@ void TaskQueue::schedule()
 
 Task *TaskQueue::task_create(target_t target, const char *name, uint32_t priority, uint32_t uid)
 {
-    Task* task = get_free_task();
-    if(task==nullptr)
+    Task *task = get_free_task();
+    if (task == nullptr)
     { // 任务队列已满
         return nullptr;
     }
@@ -117,41 +128,118 @@ void TaskQueue::task_yield()
     schedule();
 }
 
-uint32_t thread_a()
+void TaskQueue::task_block(Task *task, task_state_t state)
 {
-    InterruptManager::set_interrupt_state(true);
-    while(true)
+    assert(!InterruptManager::get_interrupt_state());
+    assert(task->node.next == NULL);
+    assert(task->node.prev == NULL);
+
+    block_list.push_back(&task->node);
+
+    assert(state != TASK_READY && state != TASK_RUNNING);
+    task->state = state;
+    Task *current = running_task();
+    if (current == task)
     {
-        printf("task running...thread a.\n");
-        // TaskQueue::task_yield();
-        yield();
+        schedule();
     }
 }
-uint32_t thread_b()
+
+void TaskQueue::task_unblock(Task *task)
 {
-    InterruptManager::set_interrupt_state(true);
-    while(true)
+    assert(!InterruptManager::get_interrupt_state());
+    block_list.remove(&task->node);
+    // sleep_list.remove(&task->node); // remove函数只看node，不针对特定的node
+    // 确认移除成功
+    assert(task->node.next == NULL);
+    assert(task->node.prev == NULL);
+
+    task->state = TASK_READY;
+}
+
+
+void TaskQueue::task_sleep(uint32_t ms)
+{
+    assert(!InterruptManager::get_interrupt_state()); // not allow interrupt
+    
+    uint32_t ticks = ms / JIFFY; // 获取睡眠的时间片
+    ticks = ticks > 0 ? ticks : 1; // 至少休眠一个时间片
+    
+    Task* current = running_task();
+    current->jiffies = Clock::get_jiffies() + ticks; // 唤醒时的全局时间片
+
+    list_node_t* anchor = sleep_list.get_tail_node();
+
+    for(list_node_t* ptr = sleep_list.get_head_node()->next; ptr != sleep_list.get_tail_node(); ptr = ptr->next)
     {
-        printf("task running...thread b.\n");
-        // TaskQueue::task_yield();
-        yield();
+        Task* task = element_entry(Task, node, ptr);
+
+        if(task->jiffies > current->jiffies) {
+            anchor = ptr;
+            break;
+        }
+    }
+
+    // 插入链表
+    assert(current->node.next == NULL);
+    assert(current->node.prev == NULL);
+    sleep_list.insert_before(anchor, &current->node);
+    current->state = TASK_SLEEPING;
+
+    schedule();
+}
+
+/**
+ * 唤醒睡眠结束的任务
+*/
+void TaskQueue::task_wakeup()
+{
+    assert(!InterruptManager::get_interrupt_state()); // not allow interrupt
+    if(sleep_list.empty())
+    {
+        return;
+    }
+
+    // 从睡眠链表中找到需要唤醒的任务
+    for(list_node_t* ptr = sleep_list.get_head_node()->next; ptr != sleep_list.get_tail_node();)
+    {
+        Task* task = element_entry(Task, node, ptr);
+        if(task->jiffies > Clock::get_jiffies()){
+            break;
+        }
+        ptr = ptr->next;
+        // 
+        task_unblock(task);
     }
 }
-uint32_t thread_c()
+
+extern void idle_thread();
+extern void init_thread();
+extern void test_thread();
+
+void thread_a()
 {
     InterruptManager::set_interrupt_state(true);
-    while(true)
+    while (true)
     {
-        printf("task running...thread c.\n");
-        // TaskQueue::task_yield();
-        yield();
+        printf("thread A running\n");
+        test();
+    }
+}
+void thread_b()
+{
+    InterruptManager::set_interrupt_state(true);
+    while (true)
+    {
+        printf("thread B running\n");
+        test();
     }
 }
 
 void task_init()
 {
     TaskQueue::init_queue();
-    TaskQueue::task_create((target_t*)thread_a, "a", 5, KERNEL_USER);
-    TaskQueue::task_create((target_t*)thread_b, "b", 5, KERNEL_USER);
-    TaskQueue::task_create((target_t*)thread_c, "c", 5, KERNEL_USER);
+    idle_task = TaskQueue::task_create((target_t *)idle_thread, "idle", 1, KERNEL_USER);
+    TaskQueue::task_create((target_t *)init_thread, "init", 5, NORMAL_USER);
+    TaskQueue::task_create((target_t *)test_thread, "test", 5, KERNEL_USER);
 }

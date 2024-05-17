@@ -6,11 +6,29 @@ List::List()
     head.prev = nullptr;
     tail.prev = &head;
     tail.next = nullptr;
+    max_size = MAX_LIST_SIZE;
+}
+
+List::List(int m_size)
+{
+    head.next = &tail;
+    head.prev = nullptr;
+    tail.prev = &head;
+    tail.next = nullptr;
+    max_size = m_size;
+}
+
+void List::init()
+{
+    head.next = &tail;
+    head.prev = nullptr;
+    tail.prev = &head;
+    tail.next = nullptr;
 }
 
 /**
  * 在 anchor 结点前插入结点 node
-*/
+ */
 void List::insert_before(list_node_t *anchor, list_node_t *node)
 {
     node->prev = anchor->prev;
@@ -22,7 +40,7 @@ void List::insert_before(list_node_t *anchor, list_node_t *node)
 
 /**
  * 在 anchor 结点后插入结点 node
-*/
+ */
 void List::insert_after(list_node_t *anchor, list_node_t *node)
 {
     node->prev = anchor;
@@ -34,7 +52,7 @@ void List::insert_after(list_node_t *anchor, list_node_t *node)
 
 /**
  * 在头结点后插入
-*/
+ */
 void List::push_front(list_node_t *node)
 {
     assert(!search(node)); // node应不存在于list中
@@ -43,21 +61,21 @@ void List::push_front(list_node_t *node)
 
 /**
  * 移除头节点后的结点并返回
-*/
+ */
 list_node_t *List::pop_front()
 {
-    if(empty())
+    if (empty())
     {
         return nullptr;
     }
-    list_node_t* node = head.next;
+    list_node_t *node = head.next;
     remove(node);
     return node;
 }
 
 /**
  * 在尾结点前插入
-*/
+ */
 void List::push_back(list_node_t *node)
 {
     assert(!search(node));
@@ -66,27 +84,27 @@ void List::push_back(list_node_t *node)
 
 /**
  * 移除尾节点前的结点并返回
-*/
+ */
 list_node_t *List::pop_back()
 {
-    if(empty())
+    if (empty())
     {
         return nullptr;
     }
-    list_node_t* node = tail.prev;
+    list_node_t *node = tail.prev;
     remove(node);
     return node;
 }
 
 /**
  * 查找结点是否在链表中
-*/
+ */
 bool List::search(list_node_t *node)
 {
-    list_node_t* next = head.next;
-    while(next!=&tail)
+    list_node_t *next = head.next;
+    while (next != nullptr && next != &tail)
     {
-        if(next==node)
+        if (next == node)
         {
             return true;
         }
@@ -97,10 +115,10 @@ bool List::search(list_node_t *node)
 
 /**
  * 从链表中删除结点
-*/
+ */
 void List::remove(list_node_t *node)
 {
-    assert(node->prev!=nullptr);
+    assert(node->prev != nullptr);
     assert(node->next != nullptr);
 
     node->prev->next = node->next;
@@ -111,21 +129,20 @@ void List::remove(list_node_t *node)
 
 /**
  * 链表是否为空
-*/
+ */
 bool List::empty()
 {
     return (head.next == &tail);
 }
 
-
 /**
  * 获取链表长度
-*/
-uint32_t List::size()
+ */
+uint32_t List::size() const
 {
     uint32_t size = 0;
-    list_node_t* next = head.next;
-    while (next!=&tail)
+    list_node_t *next = head.next;
+    while (next != &tail)
     {
         size++;
         next = next->next;
@@ -133,17 +150,29 @@ uint32_t List::size()
     return size;
 }
 
+list_node_t *List::get_head_node()
+{
+    return &head;
+}
+
+list_node_t *List::get_tail_node()
+{
+    return &tail;
+}
+
 void list_test()
 {
-    uint32_t count =5;
+    uint32_t count = 5;
     List list;
-    list_node_t* node;
-    while(count--) {
-        node = (list_node_t*)memory::alloc_kpage(1);
+    LOG("list address: 0x%p", &list);
+    list_node_t *node;
+    while (count--)
+    {
+        node = (list_node_t *)memory::alloc_kpage(1);
         list.push_front(node);
     }
     LOG("list size:%d\n", list.size());
-    while(!list.empty())
+    while (!list.empty())
     {
         node = list.pop_front();
         memory::free_page((uint32_t)node);

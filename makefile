@@ -46,6 +46,7 @@ $(BUILD)/kernel.bin: $(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/task_queue.o \
 	$(BUILD)/kernel/schedule.o \
 	$(BUILD)/kernel/gate.o \
+	$(BUILD)/kernel/thread.o \
 	$(BUILD)/devices/clock.o \
 	$(BUILD)/lib/stdio.o \
 	$(BUILD)/lib/stdlib.o \

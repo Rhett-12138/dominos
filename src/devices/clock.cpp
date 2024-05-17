@@ -35,6 +35,7 @@ void Clock::handler(int vector)
     assert(task->magic==ONIX_MAGIC);
 
     task->jiffies = jiffies;
+    TaskQueue::task_wakeup();
     task->ticks--;
     if(!task->ticks)
     {   // 时间片完
@@ -65,6 +66,11 @@ void Clock::stop_beep()
         outb(SPEAKER_REG, inb(SPEAKER_REG)&0xfc);
         beeping = 0;
     }
+}
+
+uint32_t Clock::get_jiffies()
+{
+    return jiffies;
 }
 
 void Clock::pit_init()

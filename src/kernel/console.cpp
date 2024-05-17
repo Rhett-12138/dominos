@@ -1,5 +1,6 @@
 #include <console.h>
 #include <string.h>
+#include <interrupts.h>
 
 static uint16_t *video = (uint16_t *)MEM_BASE;
 static uint16_t cursor_x = 0; // 光标坐标
@@ -175,6 +176,7 @@ void console_newline(int line)
 
 void console_write(char *buf, uint32_t count)
 {
+    bool intr = InterruptManager::disable_interrupt();
     char ch;
     if (count == 0)
     {
@@ -226,4 +228,5 @@ void console_write(char *buf, uint32_t count)
         }
     }
     reset_cursor();
+    InterruptManager::set_interrupt_state(intr);
 }

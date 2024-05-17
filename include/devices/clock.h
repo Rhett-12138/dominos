@@ -36,7 +36,10 @@ public:
     static void handler(int vector);
     static void start_beep();
     static void stop_beep();
+
+    static uint32_t get_jiffies();
     void pit_init();
+
 };
 
 
