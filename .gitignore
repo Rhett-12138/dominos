@@ -16,4 +16,5 @@
 *.pyc
 
 build
+temp
 
