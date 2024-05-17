@@ -1,6 +1,7 @@
 #pragma once
 #include <types.h>
 #include <gdt.h>
+#include <io.h>
 
 #define IDT_SIZE 256
 
@@ -134,16 +135,4 @@ public:
     static bool disable_interrupt();             // 清除 IF 位， 返回之前的值
     static bool get_interrupt_state();           // 获得 IF 位
     static void set_interrupt_state(bool state); // 设置 IF 位
-};
-
-class InterruptHandler
-{
-private:
-    int intNumber;
-
-public:
-    InterruptHandler(int num);
-    void enable();  // 开启中断
-    void disable(); // 屏蔽中断
-    // virtual void handler(int vector);
 };

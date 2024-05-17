@@ -6,19 +6,15 @@ uint32_t volatile Clock::jiffies;
 uint32_t Clock::jiffy;
 uint32_t volatile Clock::beeping;
 
-Clock::Clock(int num):InterruptHandler(num)
+
+void Clock::clock_init()
 {
     pit_init();
     jiffies = 0;
     jiffy = JIFFY;
-    InterruptManager::set_interrupt_handler(num, (handler_t)&Clock::handler);
+    InterruptManager::set_interrupt_handler(IRQ_CLOCK, (handler_t)&Clock::handler);
     LOG("CLOCK INIT.");
-    enable();
-    
-}
-
-Clock::~Clock()
-{
+    InterruptManager::set_interrupt_mask(IRQ_CLOCK, true);
 }
 
 void Clock::handler(int vector)

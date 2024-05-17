@@ -47,7 +47,9 @@ $(BUILD)/kernel.bin: $(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/schedule.o \
 	$(BUILD)/kernel/gate.o \
 	$(BUILD)/kernel/thread.o \
+	$(BUILD)/kernel/mutex.o \
 	$(BUILD)/devices/clock.o \
+	$(BUILD)/devices/keyboard.o \
 	$(BUILD)/lib/stdio.o \
 	$(BUILD)/lib/stdlib.o \
 	$(BUILD)/lib/assert.o \

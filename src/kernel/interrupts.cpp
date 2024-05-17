@@ -212,27 +212,3 @@ void InterruptManager::set_interrupt_state(bool state)
     else
         asm volatile("cli\n");
 }
-
-InterruptHandler::InterruptHandler(int num)
-{
-    intNumber = num;
-    // TODO 优化代码，将下面的功能在基类实现，简化派生类的代码
-    // InterruptManager::set_interrupt_handler(num, (handler_t)&InterruptHandler::handler);
-    // enable();
-}
-
-// 开启中断
-void InterruptHandler::enable()
-{
-    InterruptManager::set_interrupt_mask(intNumber, true);
-}
-// 屏蔽中断
-void InterruptHandler::disable()
-{
-    InterruptManager::set_interrupt_mask(intNumber, false);
-}
-
-// void InterruptHandler::handler(int vector)
-// {
-//     InterruptManager::default_handler(vector);
-// }

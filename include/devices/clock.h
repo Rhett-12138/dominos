@@ -23,23 +23,22 @@
 #define BEEP_COUNTER (OSCILLATOR / BEEP_HZ)
 #define BEEP_MS 100
 
-class Clock : public InterruptHandler
+class Clock
 {
 private:
     // 时间片计数器
     static uint32_t volatile jiffies;
     static uint32_t jiffy;
     static uint32_t volatile beeping;
+    Clock();
 public:
-    Clock(int num = IRQ_CLOCK);
-    ~Clock();
+    static void clock_init();
     static void handler(int vector);
     static void start_beep();
     static void stop_beep();
 
     static uint32_t get_jiffies();
-    void pit_init();
-
+    static void pit_init();
 };
 
 

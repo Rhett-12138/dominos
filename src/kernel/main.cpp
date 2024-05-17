@@ -6,6 +6,7 @@
 #include <interrupts.h>
 #include <stdlib.h>
 #include <clock.h>
+#include <keyboard.h>
 #include <time.h>
 #include <memory.h>
 #include <task_queue.h>
@@ -22,7 +23,8 @@ extern "C" void kernel_init()
     InterruptManager::interrupt_init();
 
     // 时钟
-    Clock clock(IRQ_CLOCK);
+    Clock::clock_init();
+    Keyboard::keyboard_init();
 
     // 系统时间
     Time::time_init();
