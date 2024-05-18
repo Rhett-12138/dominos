@@ -3,7 +3,7 @@
 
 section .text
 
-extern _Z6printfPKcz
+extern _Z6printkPKcz
 extern handler_table
 
 %macro INTERRUPT_HANDLER 2
@@ -19,7 +19,7 @@ interrupt_handler_%1:
 global _ZN16InterruptManager15HandleInterruptEv
 _ZN16InterruptManager15HandleInterruptEv:
     push message
-    call _Z6printfPKcz
+    call _Z6printkPKcz
     add esp, 4
 
     iret

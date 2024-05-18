@@ -20,12 +20,11 @@ void idle_thread()
 
 static void real_init_thread()
 {
-    BMB;
     uint32_t counter = 0;
     char ch;
     while (true)
     {
-        BMB;
+        printf("hello world\n");
         sleep(700);
     }
 }

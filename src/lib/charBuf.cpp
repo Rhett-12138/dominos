@@ -31,7 +31,7 @@ int CharBuf::putChar(const char ch)
     return WRITEOK;
 }
 
-int CharBuf::getLength()
+uint32_t CharBuf::getLength()
 {
     return index;
 }

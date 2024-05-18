@@ -171,7 +171,7 @@ void TaskQueue::task_sleep(uint32_t ms)
     ticks = ticks > 0 ? ticks : 1; // 至少休眠一个时间片
 
     Task *current = running_task();
-    LOG("sleep thread 0x%p", current);
+    // LOG("sleep thread 0x%p", current);
     current->jiffies = Clock::get_jiffies() + ticks; // 唤醒时的全局时间片
 
     list_node_t *anchor = sleep_list.get_tail_node();

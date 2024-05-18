@@ -18,6 +18,14 @@ typedef unsigned long long int uint64_t;
 
 typedef uint32_t idx_t;
 
+typedef int32_t fd_t;
+enum std_fd_t {
+    stdin,
+    stdout,
+    stderr
+};
+
+
 #define EOF -1
 #define EOS '\0' // end of string
 #define NULL 0

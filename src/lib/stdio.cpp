@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <charBuf.h>
 #include <console.h>
+#include <syscall.h>
 
 enum State
 {
@@ -50,6 +51,20 @@ int printk(const char *fmt, ...)
 
     // 输出
     console_write(buf.getBuf(), buf.getLength());
+
+    return res;
+}
+
+int printf(const char *fmt, ...)
+{
+    va_list args;
+    CharBuf buf;
+    va_start(args, fmt);
+    int res = vsprintf(buf, fmt, args);
+    va_end(args);
+
+    // 输出 使用系统调用
+    write(stdout, buf.getBuf(), buf.getLength());
 
     return res;
 }

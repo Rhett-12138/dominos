@@ -1,4 +1,5 @@
 #include <gate.h>
+#include <console.h>
 #include <stdio.h>
 #include <interrupts.h>
 #include <assert.h>
@@ -28,6 +29,17 @@ static uint32_t sys_test()
     return 255;
 }
 
+int32_t sys_write(fd_t fd, char* buf, uint32_t len)
+{
+    if(fd == stdout || fd == stderr)
+    {
+        console_write(buf, len);
+        return 0;
+    }
+    panic("write!!!");
+    return 0;
+}
+
 void syscall_init()
 {
     for (size_t i = 0; i < SYSCALL_SIZE; i++)
@@ -35,6 +47,7 @@ void syscall_init()
         syscall_table[i] = (handler_t)sys_default;
     }
     syscall_table[SYS_NR_TEST] = (handler_t)sys_test;
+    syscall_table[SYS_NR_WRITE] = (handler_t)sys_write;
     syscall_table[SYS_NR_YIELD] = (handler_t)TaskQueue::task_yield; // 系统调用yield
     syscall_table[SYS_NR_SLEEP] = (handler_t)TaskQueue::task_sleep;
 }
