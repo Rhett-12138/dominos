@@ -85,7 +85,6 @@ void InterruptManager::interrupt_init()
 // 默认中断处理函数
 void InterruptManager::default_handler(int vector)
 {
-    BMB;
     send_eoi(vector);
     DEBUG("[0x%X] default interrupt called...\n", vector);
     // set_interrupt_mask(vector-0x20, false);
@@ -109,13 +108,13 @@ void InterruptManager::exception_handler(
         message = messages[15];
     }
 
-    printf("\nEXCEPTION : %s \n", message);
-    printf("   VECTOR : 0x%02X\n", vector);
-    printf("    ERROR : 0x%08X\n", error);
-    printf("   EFLAGS : 0x%08X\n", eflags);
-    printf("       CS : 0x%02X\n", cs);
-    printf("      EIP : 0x%08X\n", eip);
-    printf("      ESP : 0x%08X\n", esp);
+    printk("\nEXCEPTION : %s \n", message);
+    printk("   VECTOR : 0x%02X\n", vector);
+    printk("    ERROR : 0x%08X\n", error);
+    printk("   EFLAGS : 0x%08X\n", eflags);
+    printk("       CS : 0x%02X\n", cs);
+    printk("      EIP : 0x%08X\n", eip);
+    printk("      ESP : 0x%08X\n", esp);
 
     // bool hanging = true;
 

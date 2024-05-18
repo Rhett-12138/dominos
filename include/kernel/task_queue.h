@@ -27,6 +27,9 @@ public:
 
     static void task_sleep(uint32_t ms);
     static void task_wakeup(); // 唤醒睡眠结束的任务
+
+    static void task_to_user_mode(target_t target);
+    static void task_activate(Task* task);
 };
 
 // 测试

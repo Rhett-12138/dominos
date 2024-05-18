@@ -9,13 +9,13 @@ static CharBuf buf;
 // 强制阻塞
 static void spin(char *name)
 {
-    printf("spinning in %s ...\n", name);
+    printk("spinning in %s ...\n", name);
     while (true);
 }
 
 void assertion_failure(char* exp, char* file, char* base, int line)
 {
-    printf(
+    printk(
         "\n--> assert(%s) failed!!!\n"
         "--> file: %s \n"
         "--> base: %s \n"
@@ -36,7 +36,7 @@ void panic(const char *fmt, ...)
     int i = vsprintf(buf, fmt, args);
     va_end(args);
 
-    printf("!!! panic !!!\n--> %s \n", buf.getBuf());
+    printk("!!! panic !!!\n--> %s \n", buf.getBuf());
     spin("panic()");
 
     // 不可能走到这里，否则出错；

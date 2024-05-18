@@ -2,6 +2,7 @@
 #include <syscall.h>
 #include <stdio.h>
 #include <keyboard.h>
+#include <task_queue.h>
 
 void idle_thread()
 {
@@ -17,18 +18,33 @@ void idle_thread()
     }
 }
 
-void init_thread()
+static void real_init_thread()
 {
-    InterruptManager::set_interrupt_state(true);
+    BMB;
+    uint32_t counter = 0;
     char ch;
     while (true)
     {
-        // LOG("init_thread");
-        bool intr = InterruptManager::disable_interrupt();
-        Keyboard::read(&ch, 1);
-        printf("%c", ch);
-        InterruptManager::set_interrupt_state(intr);
+        BMB;
+        sleep(700);
     }
+}
+
+void init_thread()
+{
+    char temp[100]; // 为了栈顶有足够的空间
+    LOG("to_user_mode, thread: 0x%p", TaskQueue::running_task());
+    TaskQueue::task_to_user_mode(real_init_thread);
+    // InterruptManager::set_interrupt_state(true);
+    // char ch;
+    // while (true)
+    // {
+    //     // LOG("init_thread");
+    //     bool intr = InterruptManager::disable_interrupt();
+    //     Keyboard::read(&ch, 1);
+    //     printk("%c", ch);
+    //     InterruptManager::set_interrupt_state(intr);
+    // }
 }
 
 void test_thread()

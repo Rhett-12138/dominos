@@ -17,6 +17,7 @@ char message[] = "hello world!"; // .data
 
 extern "C" void kernel_init()
 {
+    tss_init();
     memory::memory_map_init();
     memory::mapping_init();
 

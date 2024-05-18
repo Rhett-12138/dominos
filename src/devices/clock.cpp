@@ -28,6 +28,7 @@ void Clock::handler(int vector)
     // LOG("clock jiffies %d ...", jiffies);
     
     Task* task = TaskQueue::running_task();
+    // LOG("clock interrupt, current task 0x%p, %x", task, task->magic);
     assert(task->magic==ONIX_MAGIC);
 
     task->jiffies = jiffies;

@@ -108,6 +108,7 @@ void TaskQueue::schedule()
     {
         return;
     }
+    task_activate(next);
     task_switch(next);
 }
 
@@ -127,13 +128,14 @@ void TaskQueue::task_yield()
     schedule();
 }
 
-void TaskQueue::task_block(Task *task, List* blist, task_state_t state)
+void TaskQueue::task_block(Task *task, List *blist, task_state_t state)
 {
     assert(!InterruptManager::get_interrupt_state());
+    // LOG("block thread 0x%p", task);
     assert(task->node.next == NULL);
     assert(task->node.prev == NULL);
-    // LOG("block thread 0x%p", task);
-    if (blist==nullptr)
+
+    if (blist == nullptr)
     {
         blist = &block_list;
     }
@@ -169,6 +171,7 @@ void TaskQueue::task_sleep(uint32_t ms)
     ticks = ticks > 0 ? ticks : 1; // 至少休眠一个时间片
 
     Task *current = running_task();
+    LOG("sleep thread 0x%p", current);
     current->jiffies = Clock::get_jiffies() + ticks; // 唤醒时的全局时间片
 
     list_node_t *anchor = sleep_list.get_tail_node();
@@ -183,7 +186,7 @@ void TaskQueue::task_sleep(uint32_t ms)
             break;
         }
     }
-
+    BMB;
     // 插入睡眠链表
     task_block(current, &sleep_list, TASK_SLEEPING);
 
@@ -215,6 +218,60 @@ void TaskQueue::task_wakeup()
     }
 }
 
+void TaskQueue::task_to_user_mode(target_t target)
+{
+    Task *task = running_task();
+    LOG("current task 0x%p", task);
+    uint32_t addr = (uint32_t)task + PAGE_SIZE;
+    addr -= sizeof(intr_frame_t);
+    intr_frame_t *iframe = (intr_frame_t *)(addr);
+
+    iframe->vector = 0x20;
+    iframe->edi = 1;
+    iframe->esi = 2;
+    iframe->ebp = 3;
+    iframe->esp_dummy = 4;
+    iframe->ebx = 5;
+    iframe->edx = 6;
+    iframe->ecx = 7;
+    iframe->eax = 8;
+
+    iframe->gs = 0;
+    iframe->ds = USER_DATA_SELECTOR;
+    iframe->es = USER_DATA_SELECTOR;
+    iframe->fs = USER_DATA_SELECTOR;
+    iframe->ss = USER_DATA_SELECTOR;
+    iframe->cs = USER_CODE_SELECTOR;
+
+    iframe->error = ONIX_MAGIC;
+    uint32_t stack3 = memory::alloc_kpage(1);
+    
+    Task* temp = (Task*)stack3;
+    temp->node.next = nullptr;
+    temp->node.prev = nullptr;
+
+    iframe->eip = (uint32_t)target; // 返回到这个地址
+    iframe->eflags = (0 << 12 | 0b10 | 1 << 9);
+    iframe->esp = stack3 + PAGE_SIZE;
+
+    LOG("iframe 0x%p, size %d bytes, esp %x", iframe, sizeof(intr_frame_t), stack3 + PAGE_SIZE);
+    asm volatile(
+        // "push %%eax\n"
+        "movl %0, %%esp\n"
+        "jmp interrupt_exit\n" ::"m"(iframe));
+    
+}
+
+extern tss_t tss;
+void TaskQueue::task_activate(Task *task)
+{
+    assert(task->magic == ONIX_MAGIC);
+    if(task->uid != KERNEL_USER)
+    {
+        tss.esp0 = (uint32_t)task + PAGE_SIZE;
+    }
+}
+
 extern void idle_thread();
 extern void init_thread();
 extern void test_thread();
@@ -224,7 +281,7 @@ void thread_a()
     InterruptManager::set_interrupt_state(true);
     while (true)
     {
-        printf("thread A running\n");
+        printk("thread A running\n");
         test();
     }
 }
@@ -233,7 +290,7 @@ void thread_b()
     InterruptManager::set_interrupt_state(true);
     while (true)
     {
-        printf("thread B running\n");
+        printk("thread B running\n");
         test();
     }
 }

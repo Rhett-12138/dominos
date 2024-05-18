@@ -37,7 +37,7 @@ $(BUILD)/kernel.bin: $(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/main.o \
 	$(BUILD)/kernel/io.o \
 	$(BUILD)/kernel/console.o \
-	$(BUILD)/kernel/gdt.o \
+	$(BUILD)/kernel/global.o \
 	$(BUILD)/kernel/interrupts.o \
 	$(BUILD)/kernel/inthandlers.o \
 	$(BUILD)/kernel/time.o \

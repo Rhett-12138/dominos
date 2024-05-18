@@ -1,6 +1,6 @@
 #pragma once
 #include <types.h>
-#include <gdt.h>
+#include <global.h>
 #include <io.h>
 
 #define IDT_SIZE 256

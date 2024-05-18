@@ -80,7 +80,8 @@ typedef struct tss_t
     uint16_t trace : 1;     // 如果置位，任务切换时将引发一个调试异常
     uint16_t reversed : 15; // 保留不用
     uint16_t iobase;        // I/O 位图基地址，16 位从 TSS 到 IO 权限位图的偏移
-    uint32_t ssp;           // 任务影子栈指针
+    // uint32_t ssp;           // 任务影子栈指针
 } _packed tss_t;
 
-extern "C"  void gdt_init();
+extern "C" void gdt_init();
+extern "C" void tss_init();

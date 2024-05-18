@@ -10,14 +10,12 @@ Mutex::Mutex()
 {
     value = 0;
     wait_queue.init();
-    BMB;
 }
 
 void Mutex::init()
 {
     value = 0;
     wait_queue.init();
-    BMB;
 }
 
 /**

@@ -209,7 +209,7 @@ syscall_handler:
     push ecx; 第二个参数
     push ebx; 第一个参数
 
-    xchg bx, bx
+    ; xchg bx, bx
     ; 调用系统调用处理函数，syscall_table 中存储了系统调用处理函数的指针
     call [syscall_table + eax * 4]
 

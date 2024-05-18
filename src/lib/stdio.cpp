@@ -40,7 +40,7 @@ char getChar(int value)
     return (char)(value + '0');
 }
 
-int printf(const char *fmt, ...)
+int printk(const char *fmt, ...)
 {
     va_list args;
     CharBuf buf;
@@ -295,7 +295,7 @@ void debug(char* file, int line, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     vsprintf(buf, fmt, args);
-    printf("[%s] [%d] %s\n", file, line, buf.getBuf());
-    // printf("%s", buf.getBuf());
+    printk("[%s] [%d] %s\n", file, line, buf.getBuf());
+    // printk("%s", buf.getBuf());
     va_end(args);
 }

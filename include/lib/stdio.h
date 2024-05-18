@@ -21,7 +21,7 @@ char getChar(int value);
 void number(CharBuf& buf, unsigned long num, int base, int size, int flags);
 int vsprintf(CharBuf& buf, const char *fmt, va_list args);
 int sprintf(char *buf, const char *fmt, ...);
-int printf(const char *fmt, ...);
+int printk(const char *fmt, ...);
 void debug(char* file, int line, const char *fmt, ...);
 
 #define DEBUG(fmt, args...) debug(__BASE_FILE__, __LINE__, fmt, ##args)
