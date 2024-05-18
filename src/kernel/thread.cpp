@@ -1,6 +1,7 @@
 #include <interrupts.h>
 #include <syscall.h>
 #include <stdio.h>
+#include <keyboard.h>
 
 void idle_thread()
 {
@@ -19,10 +20,14 @@ void idle_thread()
 void init_thread()
 {
     InterruptManager::set_interrupt_state(true);
+    char ch;
     while (true)
     {
-        LOG("init task...");
-        test();
+        // LOG("init_thread");
+        bool intr = InterruptManager::disable_interrupt();
+        Keyboard::read(&ch, 1);
+        printf("%c", ch);
+        InterruptManager::set_interrupt_state(intr);
     }
 }
 
@@ -33,7 +38,6 @@ void test_thread()
     while (true)
     {
         // LOG("test task %d...", counter++);
-        sleep(709);
-
+        sleep(1709);
     }
 }

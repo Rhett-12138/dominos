@@ -6,11 +6,10 @@
 #include <syscall.h>
 #include <clock.h>
 
-
-Task* TaskQueue::task_table[MAX_TASKS];
+Task *TaskQueue::task_table[MAX_TASKS];
 List TaskQueue::block_list = List();
 List TaskQueue::sleep_list = List();
-Task* idle_task;
+Task *idle_task;
 
 /**
  * @brief 初始化任务队列
@@ -128,14 +127,18 @@ void TaskQueue::task_yield()
     schedule();
 }
 
-void TaskQueue::task_block(Task *task, task_state_t state)
+void TaskQueue::task_block(Task *task, List* blist, task_state_t state)
 {
     assert(!InterruptManager::get_interrupt_state());
     assert(task->node.next == NULL);
     assert(task->node.prev == NULL);
+    // LOG("block thread 0x%p", task);
+    if (blist==nullptr)
+    {
+        blist = &block_list;
+    }
 
-    block_list.push_back(&task->node);
-
+    blist->push_back(&task->node);
     assert(state != TASK_READY && state != TASK_RUNNING);
     task->state = state;
     Task *current = running_task();
@@ -148,6 +151,7 @@ void TaskQueue::task_block(Task *task, task_state_t state)
 void TaskQueue::task_unblock(Task *task)
 {
     assert(!InterruptManager::get_interrupt_state());
+    // LOG("unblock thread 0x%p", task);
     block_list.remove(&task->node);
     // sleep_list.remove(&task->node); // remove函数只看node，不针对特定的node
     // 确认移除成功
@@ -157,58 +161,56 @@ void TaskQueue::task_unblock(Task *task)
     task->state = TASK_READY;
 }
 
-
 void TaskQueue::task_sleep(uint32_t ms)
 {
     assert(!InterruptManager::get_interrupt_state()); // not allow interrupt
-    
-    uint32_t ticks = ms / JIFFY; // 获取睡眠的时间片
+
+    uint32_t ticks = ms / JIFFY;   // 获取睡眠的时间片
     ticks = ticks > 0 ? ticks : 1; // 至少休眠一个时间片
-    
-    Task* current = running_task();
+
+    Task *current = running_task();
     current->jiffies = Clock::get_jiffies() + ticks; // 唤醒时的全局时间片
 
-    list_node_t* anchor = sleep_list.get_tail_node();
+    list_node_t *anchor = sleep_list.get_tail_node();
 
-    for(list_node_t* ptr = sleep_list.get_head_node()->next; ptr != sleep_list.get_tail_node(); ptr = ptr->next)
+    for (list_node_t *ptr = sleep_list.get_head_node()->next; ptr != sleep_list.get_tail_node(); ptr = ptr->next)
     {
-        Task* task = element_entry(Task, node, ptr);
+        Task *task = element_entry(Task, node, ptr);
 
-        if(task->jiffies > current->jiffies) {
+        if (task->jiffies > current->jiffies)
+        {
             anchor = ptr;
             break;
         }
     }
 
-    // 插入链表
-    assert(current->node.next == NULL);
-    assert(current->node.prev == NULL);
-    sleep_list.insert_before(anchor, &current->node);
-    current->state = TASK_SLEEPING;
+    // 插入睡眠链表
+    task_block(current, &sleep_list, TASK_SLEEPING);
 
     schedule();
 }
 
 /**
  * 唤醒睡眠结束的任务
-*/
+ */
 void TaskQueue::task_wakeup()
 {
     assert(!InterruptManager::get_interrupt_state()); // not allow interrupt
-    if(sleep_list.empty())
+    if (sleep_list.empty())
     {
         return;
     }
 
     // 从睡眠链表中找到需要唤醒的任务
-    for(list_node_t* ptr = sleep_list.get_head_node()->next; ptr != sleep_list.get_tail_node();)
+    for (list_node_t *ptr = sleep_list.get_head_node()->next; ptr != sleep_list.get_tail_node();)
     {
-        Task* task = element_entry(Task, node, ptr);
-        if(task->jiffies > Clock::get_jiffies()){
+        Task *task = element_entry(Task, node, ptr);
+        if (task->jiffies > Clock::get_jiffies())
+        {
             break;
         }
         ptr = ptr->next;
-        // 
+        //
         task_unblock(task);
     }
 }

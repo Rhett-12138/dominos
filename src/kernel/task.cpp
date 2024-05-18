@@ -41,7 +41,7 @@ void Task::create(target_t target, const char *name, uint32_t priority, uint32_t
 
 void Task::block(task_state_t state)
 {
-    TaskQueue::task_block(this, state);
+    TaskQueue::task_block(this, nullptr, state);
 }
 
 

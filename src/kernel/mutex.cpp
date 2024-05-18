@@ -10,6 +10,14 @@ Mutex::Mutex()
 {
     value = 0;
     wait_queue.init();
+    BMB;
+}
+
+void Mutex::init()
+{
+    value = 0;
+    wait_queue.init();
+    BMB;
 }
 
 /**
@@ -23,10 +31,7 @@ void Mutex::lock()
     if(value >= 1) {
         // 若value为true，表示已经被别人持有
         // 则当前任务加入互斥量等待队列
-        assert(current->node.next == NULL);
-        assert(current->node.prev == NULL);
-        wait_queue.push_back(&current->node);
-        current->state = TASK_BLOCKED;
+        TaskQueue::task_block(current, &wait_queue, TASK_BLOCKED);
     }
     // 无人持有
     assert(value == 0);
@@ -48,14 +53,13 @@ void Mutex::unlock()
     bool intr = InterruptManager::disable_interrupt();
 
     Task* current = TaskQueue::running_task();
-
+    
     // 互斥量已被持有
     assert(value);
 
     // 取消持有
     value--;
     assert(!value);
-
     //如果等待队列不为空，恢复第一个任务的执行
     if(!wait_queue.empty())
     {
@@ -68,4 +72,46 @@ void Mutex::unlock()
 
     // 恢复中断状态
     InterruptManager::set_interrupt_state(intr);
+}
+
+Lock::Lock()
+{
+    holder = nullptr;
+    repeat = 0;
+}
+
+void Lock::init()
+{
+    holder = nullptr;
+    repeat = 0;
+    // mutex = Mutex();
+    mutex.init();
+}
+
+void Lock::acquire()
+{
+    Task* current = TaskQueue::running_task();
+    if(holder != current) {
+        mutex.lock();
+        holder = current;
+        repeat = 1;
+    }
+    else{
+        repeat++;
+    }
+}
+
+void Lock::release()
+{
+    Task* current = TaskQueue::running_task();
+    assert(holder == current);
+    if(repeat > 1)
+    {
+        repeat--;
+        return;
+    }
+    assert(repeat == 1);
+    holder = nullptr;
+    repeat = 0;
+    mutex.unlock();
 }

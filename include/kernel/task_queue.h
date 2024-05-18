@@ -22,7 +22,7 @@ public:
     static Task *task_create(target_t target, const char *name, uint32_t priority, uint32_t uid); // 创建任务
     static void task_yield();                                                                     // 进程主动切换
 
-    static void task_block(Task* task, task_state_t state);
+    static void task_block(Task *task, List* blist, task_state_t state);
     static void task_unblock(Task* task);
 
     static void task_sleep(uint32_t ms);
