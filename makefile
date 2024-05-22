@@ -48,6 +48,7 @@ $(BUILD)/kernel.bin: $(BUILD)/kernel/start.o \
 	$(BUILD)/kernel/gate.o \
 	$(BUILD)/kernel/thread.o \
 	$(BUILD)/kernel/mutex.o \
+	$(BUILD)/kernel/arena.o \
 	$(BUILD)/devices/clock.o \
 	$(BUILD)/devices/keyboard.o \
 	$(BUILD)/lib/stdio.o \

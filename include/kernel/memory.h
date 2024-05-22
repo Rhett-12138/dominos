@@ -47,6 +47,8 @@
 
 #define KERNEL_MAP_BITS 0x4000
 
+#define PDE_MASK 0xFFC00000
+
 // 内核页表索引
 static uint32_t KERNEL_PAGE_TABLE[] = {
     0x2000,
@@ -108,8 +110,8 @@ public:
     static void set_cr3(uint32_t pde); // 设置 cr3 寄存器，参数是页目录的地址
     static void mapping_init();
 
-    static page_entry_t *get_pde();
-    static page_entry_t *get_pte(uint32_t vaddr); // 获取虚拟地址 vaddr 对应的页表
+    static page_entry_t *get_pde();               // 获取页目录
+    static page_entry_t *get_pte(uint32_t vaddr, bool create); // 获取虚拟地址 vaddr 对应的页表
     static void flush_tlb(uint32_t vaddr);        // 刷新虚拟地址 vaddr 的 块表 TLB
     static void memory_test();                    // TODO delete
 

@@ -35,7 +35,7 @@ public:
     void push_back(list_node_t *node);                          // 在尾结点前插入
     list_node_t *pop_back();                                    // 移除尾节点前的结点并返回
     bool search(list_node_t *node);                             // 查找结点是否在链表中
-    void remove(list_node_t *node);                             // 从链表中删除结点
+    static void remove(list_node_t *node);                             // 从链表中删除结点
     bool empty();                                               // 链表是否为空
     uint32_t size() const;                                      // 获取链表长度
 

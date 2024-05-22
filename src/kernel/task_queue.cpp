@@ -300,5 +300,5 @@ void task_init()
     TaskQueue::init_queue();
     idle_task = TaskQueue::task_create((target_t *)idle_thread, "idle", 1, KERNEL_USER);
     TaskQueue::task_create((target_t *)init_thread, "init", 5, NORMAL_USER);
-    TaskQueue::task_create((target_t *)test_thread, "test", 5, KERNEL_USER);
+    // TaskQueue::task_create((target_t *)test_thread, "test", 5, KERNEL_USER);
 }
