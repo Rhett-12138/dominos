@@ -117,4 +117,7 @@ public:
 
     static uint32_t alloc_kpage(uint32_t count);             // 从位图中扫描并分配 count 个连续的页
     static void free_kpage(uint32_t addr, uint32_t count); // 与 scan_page 相对，重置相应的页
+
+    static void link_page(uint32_t vaddr); // 将vaddr映射物理内存
+    static void unlink_page(uint32_t vaddr);
 };

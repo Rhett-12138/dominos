@@ -5,6 +5,7 @@
 #include <interrupts.h>
 #include <syscall.h>
 #include <clock.h>
+#include <arena.h>
 
 Task *TaskQueue::task_table[MAX_TASKS];
 List TaskQueue::block_list = List();

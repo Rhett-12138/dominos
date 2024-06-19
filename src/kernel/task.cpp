@@ -3,6 +3,7 @@
 #include <string.h>
 #include <memory.h>
 #include <task_queue.h>
+#include <arena.h>
 
 extern Bitmap kernel_map;
 extern void task_switch(Task *next);
@@ -34,7 +35,11 @@ void Task::create(target_t target, const char *name, uint32_t priority, uint32_t
     this->jiffies = 0;
     this->state = TASK_READY;
     this->uid = uid;
-    // TODO vmap
+    // 初始化位图
+    this->vmap = (Bitmap*)kmalloc(sizeof(Bitmap));
+    void *buf = (void*)memory::alloc_kpage(1);
+    this->vmap->init((char*)buf, PAGE_SIZE, KERNEL_MEMORY_SIZE / PAGE_SIZE);
+
     this->pde = KERNEL_PAGE_DIR;
     this->magic = ONIX_MAGIC;
 }

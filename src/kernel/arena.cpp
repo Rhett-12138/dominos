@@ -19,7 +19,7 @@ void arena_init()
     }
 }
 
-// 获得arena 第 idx 块内存指针
+// 获得 arena 第 idx 块内存指针
 void *get_arena_block(arena_t *arena, uint32_t idx)
 {
     assert(arena->desc->total_block > idx);
@@ -30,19 +30,23 @@ void *get_arena_block(arena_t *arena, uint32_t idx)
 
 arena_t *get_block_arena(block_t *block)
 {
+    // TODO 没有考虑 block 大小大于一页的情况
     return (arena_t *)((uint32_t)block & 0xfffff000);
 }
 
+/**
+ * 请求大小为 size bytes 的内存
+ */
 void *kmalloc(size_t size)
 {
     arena_descriptor_t *desc = nullptr;
     arena_t *arena;
     block_t *block;
-    char *addr;
+    char *addr; // 返回地址
     if (size > 1024)
-    {
-        uint32_t asize = size + sizeof(arena_t);
-        uint32_t count = div_round_up(asize, PAGE_SIZE);
+    {   // 正常arena的大小为16B到1024B，大于1024B需要额外处理
+        uint32_t asize = size + sizeof(arena_t); // 真正的大小
+        uint32_t count = div_round_up(asize, PAGE_SIZE); // 需要占用的页数
         arena = (arena_t *)memory::alloc_kpage(count);
         memset(arena, 0, count * PAGE_SIZE);
         arena->large = true;

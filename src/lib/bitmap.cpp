@@ -16,6 +16,9 @@ Bitmap::~Bitmap()
 {
 }
 
+/**
+ * 初始化位图，
+ */
 void Bitmap::init(char *buffer, uint32_t length, uint32_t offset)
 {
     memset(buffer, 0, length);

@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <syscall.h>
 #include <task_queue.h>
+#include <memory.h>
 
 handler_t syscall_table[SYSCALL_SIZE];
 static void sys_default()
@@ -15,17 +16,19 @@ static void sys_default()
 Task *task = NULL;
 static uint32_t sys_test()
 {
-    if (!task)
-    {
-        task = TaskQueue::running_task();
-        LOG("block task 0x%p", task);
-        task->block(TASK_BLOCKED);
-    }
-    else
-    {
-        task->unblock();
-        task = NULL;
-    }
+    
+    BMB;
+    memory::link_page(0x1600000);
+    BMB;
+    char* ptr = (char*)0x1600000;
+    ptr[3] = 'T';
+
+    BMB;
+    memory::unlink_page(0x1600000);
+
+    BMB;
+    ptr[3] = 'T';
+
     return 255;
 }
 

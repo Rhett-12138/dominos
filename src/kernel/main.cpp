@@ -12,6 +12,7 @@
 #include <task_queue.h>
 #include <gate.h>
 #include <list.h>
+#include <arena.h>
 
 char message[] = "hello world!"; // .data
 
@@ -20,7 +21,8 @@ extern "C" void kernel_init()
     tss_init();
     memory::memory_map_init();
     memory::mapping_init();
-
+    arena_init();
+    
     InterruptManager::interrupt_init();
 
     // 时钟
